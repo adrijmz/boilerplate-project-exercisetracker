@@ -11,11 +11,11 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
   error=>console.log(error));
 
 var userSchema = new mongoose.Schema({
-  username: String,
+  username: {type:String, required: true},
   count: Number,
   log:[{
-    description: String,
-    duration: Number,
+    description: {type:String, required:true},
+    duration: {type:Number, required: true},
     date: String
   }]
 })
@@ -50,13 +50,17 @@ app.get('/api/users', (req,res)=>{
   })
 })
 
-app.post('/api/users/:id/exercises', (req,res)=>{
-  userModel.findById(req.body.id, (err,user)=>{
+app.post('/api/users/:_id/exercises', (req,res)=>{
+  userModel.findByIdAndUpdate(req.body.id,{ $inc: { count: 1 } }, {new: true }, (err,user)=>{
     if(err) res.json({error: 'invalid id'})
     else{
       let reqDate
       if(!req.body.date){
-        reqDate = new Date().toUTCString()
+        let year = new Date().getUTCFullYear()
+        let month = new Date().getUTCMonth()+1
+        let day = new Date().getUTCDate()
+        reqDate = year+'-'+month+'-'+day
+        reqDate = new Date(reqDate).toDateString()
       }
       else{
         reqDate = new Date(req.body.date).toDateString()
@@ -67,7 +71,6 @@ app.post('/api/users/:id/exercises', (req,res)=>{
         date: reqDate
       }
       //user.log.push(myExercise)
-      user.count += 1
       user.log.push(myExercise)
       user.save((err, userSaved)=>{
         if(err) console.log(err)
@@ -85,18 +88,26 @@ app.post('/api/users/:id/exercises', (req,res)=>{
   })
 })
 
-app.get('/api/users/:id/logs', (req,res)=>{
-  userModel.findById(req.params.id, (err,doc)=>{
+app.get('/api/users/:_id/logs', (req,res)=>{
+  userModel.findById(req.params._id, (err,doc)=>{
     if(err) console.error(err)
     else{
-      res.json(doc)
+      let myLogs = doc.log.map((item)=>{
+        return{
+          description: item.description,
+          duration: item.duration,
+          date: item.date
+        }
+      })
+      res.json({
+        _id: doc.id,
+        username:doc.username,
+        count: doc.count,
+        log: myLogs
+      })
     }
   })
 })
-
-
-
-
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
