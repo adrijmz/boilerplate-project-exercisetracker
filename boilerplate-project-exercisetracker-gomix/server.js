@@ -51,7 +51,7 @@ app.get('/api/users', (req,res)=>{
 })
 
 app.post('/api/users/:_id/exercises', (req,res)=>{
-  userModel.findByIdAndUpdate(req.body.id,{ $inc: { count: 1 } }, {new: true }, (err,user)=>{
+  userModel.findByIdAndUpdate(req.body[':_id'],{ $inc: { count: 1 } }, {new: true }, (err,user)=>{
     if(err) res.json({error: 'invalid id'})
     else{
       let reqDate
