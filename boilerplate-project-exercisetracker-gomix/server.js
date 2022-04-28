@@ -66,17 +66,18 @@ app.post('/api/users/:_id/exercises', (req,res)=>{
       if(!req.body.duration) return res.json({error: 'duration required'})
       let myExercise = {
         description: req.body.description,
-        duration: req.body.duration,
+        duration: parseInt(req.body.duration),
         date: reqDate
       }
       //user.log.push(myExercise)
       user.log.push(myExercise)
       user.save((err, userSaved)=>{
         if(err) console.log(err)
+        if(!userSaved) console.error('not user found')
         else{
           res.json({
+            username: user.username,
             _id: user.id,
-            username: userSaved.username,
             date: myExercise.date,
             duration: myExercise.duration,
             description: myExercise.description
