@@ -53,18 +53,17 @@ app.get('/api/users', (req,res)=>{
 app.post('/api/users/:_id/exercises', (req,res)=>{
   userModel.findByIdAndUpdate(req.body[':_id'],{ $inc: { count: 1 } }, {new: true }, (err,user)=>{
     if(err) res.json({error: 'invalid id'})
+    else if(!user) res.json({error: 'invalid username'})
     else{
       let reqDate
       if(!req.body.date){
-        let year = new Date().getUTCFullYear()
-        let month = new Date().getUTCMonth()+1
-        let day = new Date().getUTCDate()
-        reqDate = year+'-'+month+'-'+day
-        reqDate = new Date(reqDate).toDateString()
+        reqDate = new Date().toDateString()
       }
       else{
         reqDate = new Date(req.body.date).toDateString()
       }
+      if(!req.body.description) return res.json({error: 'description required'})
+      if(!req.body.duration) return res.json({error: 'duration required'})
       let myExercise = {
         description: req.body.description,
         duration: req.body.duration,
@@ -76,8 +75,8 @@ app.post('/api/users/:_id/exercises', (req,res)=>{
         if(err) console.log(err)
         else{
           res.json({
-            _id: userSaved.id,
-            username:userSaved.username,
+            _id: user.id,
+            username: userSaved.username,
             date: myExercise.date,
             duration: myExercise.duration,
             description: myExercise.description
@@ -91,6 +90,7 @@ app.post('/api/users/:_id/exercises', (req,res)=>{
 app.get('/api/users/:_id/logs', (req,res)=>{
   userModel.findById(req.params._id, (err,doc)=>{
     if(err) console.error(err)
+    else if(!doc) res.json({error: 'invalid username'})
     else{
       let myLogs = doc.log.map((item)=>{
         return{
