@@ -51,6 +51,18 @@ app.get('/api/users', (req,res)=>{
 })
 
 app.post('/api/users/:_id/exercises', (req,res)=>{
+  if(!req.body[':_id']) {
+    res.json({error: 'ID needed'})
+    return
+  }
+  if(!req.body.description) {
+    res.json({error: 'description required'})
+    return
+  }
+  if(!req.body.duration) {
+    res.json({error: 'duration required'})
+    return
+  }
   userModel.findByIdAndUpdate(req.body[':_id'],{ $inc: { count: 1 } }, {new: true }, (err,user)=>{
     if(err) res.json({error: 'invalid id'})
     else if(!user) res.json({error: 'invalid username'})
@@ -73,11 +85,10 @@ app.post('/api/users/:_id/exercises', (req,res)=>{
       user.log.push(myExercise)
       user.save((err, userSaved)=>{
         if(err) console.log(err)
-        if(!userSaved) console.error('not user found')
         else{
           res.json({
-            username: user.username,
-            _id: user.id,
+            _id: userSaved.id,
+            username: userSaved.username,
             date: myExercise.date,
             duration: myExercise.duration,
             description: myExercise.description
